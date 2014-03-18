@@ -3,9 +3,9 @@ package rooms
 import (
 	"encoding/csv"
 	"fmt"
+	"html/template"
+	"net/http"
 	"os"
-  "net/http"
-  "html/template"
 )
 
 type Room struct {
@@ -16,7 +16,7 @@ type Room struct {
 }
 
 var rooms = make(map[string]*Room)
-var	tickets = make(map[string]string)
+var tickets = make(map[string]string)
 
 func setup(filename string) (err error) {
 	file, err := os.Open(filename)
@@ -33,9 +33,9 @@ func setup(filename string) (err error) {
 
 	for _, value := range lines {
 
-    if value[2] == "" {
-      continue
-    }
+		if value[2] == "" {
+			continue
+		}
 
 		// update tickets
 		tickets[value[0]] = value[2]
@@ -72,7 +72,7 @@ func raffle() string {
 			return ticket.Roomies[i]
 		}
 	}
-  return "Oops .. again"
+	return "Oops .. again"
 }
 
 func roomies(id string, rooms map[string]*Room, tickets map[string]string) {
@@ -86,41 +86,40 @@ func init() {
 		fmt.Println("WTF ..", err)
 	}
 
-  http.HandleFunc("/", handler)
-  http.HandleFunc("/rooms", rooms_handler)
-  http.HandleFunc("/raffle", raffle_handler)
+	http.HandleFunc("/", handler)
+	http.HandleFunc("/rooms", rooms_handler)
+	http.HandleFunc("/raffle", raffle_handler)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-  layout, err := template.ParseFiles("layout.html")
-  if err != nil {
-    panic(err)
-  }
+	layout, err := template.ParseFiles("layout.html")
+	if err != nil {
+		panic(err)
+	}
 
-  data :=  &Room{}
-  layout.Execute(w, data)
+	data := &Room{}
+	layout.Execute(w, data)
 }
 
 func rooms_handler(w http.ResponseWriter, r *http.Request) {
-  layout, err := template.ParseFiles("layout.html")
-  if err != nil {
-    panic(err)
-  }
+	layout, err := template.ParseFiles("layout.html")
+	if err != nil {
+		panic(err)
+	}
 
-  data, ok := rooms[tickets[r.FormValue("ticket")]]
-  if ok == false {
-    data = &Room{Type: "No Ticket or Conference Pass or Guest"}
-  }
-  layout.Execute(w, data)
+	data, ok := rooms[tickets[r.FormValue("ticket")]]
+	if ok == false {
+		data = &Room{Type: "No Ticket or Conference Pass or Guest"}
+	}
+	layout.Execute(w, data)
 }
 
 func raffle_handler(w http.ResponseWriter, r *http.Request) {
-  layout, err := template.ParseFiles("raffle.html")
-  if err != nil {
-    panic(err)
-  }
+	layout, err := template.ParseFiles("raffle.html")
+	if err != nil {
+		panic(err)
+	}
 
-  winner := raffle()
-  layout.Execute(w, winner)
+	winner := raffle()
+	layout.Execute(w, winner)
 }
-
